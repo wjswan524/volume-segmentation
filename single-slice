@@ -1,0 +1,32 @@
+# This Python script serves two primary functions:
+# Import and segment a single slice of a micro-CT scan using Otsu Nobuyuki's
+#   thresholding method.
+# Calculate porosity via pixel counting of the binarized image.
+
+import cv2
+import skimage
+from skimage import filters
+import imageio
+from PIL import Image
+
+im = imageio.imread('C:/Users/wjswa/Documents/Micro-CT scans/81/4x_81_Export0001.tif')
+print(type(im))
+
+gray = skimage.color.rgb2gray(im)
+
+# There is black space surrounding each image, which must be cropped out. The cropping
+#   parameters here are specific to the scan being used.
+cropped = gray[175:825,175:825]
+
+# Now we create a mask using Otsu's thresholding method.
+val = filters.threshold_otsu(cropped)
+mask = cropped < val
+
+# Finally, we transform the array yielded by Otsu's method into a grayscale image and
+#   use the histogram to compare void pixels to total image area.
+img = Image.fromarray(mask,'L')
+hist = img.histogram()
+
+print(hist[1]/(hist[0]+hist[1]))
+
+cv2.imwrite('C:/Users/wjswa/Documents/Test.jpg',img)
